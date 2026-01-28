@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from django.urls import reverse
 
 # Create your models here.
 
@@ -22,14 +23,46 @@ class Post(models.Model):
         DRAFT = 'DF', 'DRAFT'
         PUBLISHED = 'PB', 'Published'
 
+    #   Defines metadata for the model.
 
+    class Meta:
+        #   use the ordering attribute to tell Django that it should sort results by the publish field
+        ordering = ['-publish']
+        #   allows dev to define database indexes for the model which can be one or multiple fields in ascending or descending order
+        #   or functional expressions and database functions
+        indexes = [
+            models.Index(fields=['publish']),
+        ]
 
+    def __str__(self):
+        return self.title
+
+    def get_absolute_url(self):
+        return reverse(
+            'blog:post_detail',
+            # args=[self.id]
+            args=[
+                self.publish.year,
+                self.publish.month,
+                self.publish.day,
+                self.slug
+            ]
+        )
 
     title = models.CharField(max_length=250)
     #   This is a SlugField field tha translates into a VARCHAR column
     #   Slug is a short label tha contains only letters, numbers, underscores, or hyphens
     #   SEO-friendly URLs for the blog posts
-    slug = models.SlugField(max_length=250)
+    # slug = models.SlugField(max_length=250)
+    #   Chapter Two implementation
+    #   the slug field is now required to be unique for the date stored in the publish field
+    #   publish field is an instance of DateTieField
+    #   Check for unique values will be done only against the date
+    slug = models.SlugField(
+        max_length=250,
+        #   not enforced at the database level
+        unique_for_date='publish'
+    )
     body = models.TextField()
     #Field to store the publication date and time
     publish = models.DateTimeField(default=timezone.now)
@@ -66,15 +99,7 @@ class Post(models.Model):
 
 
 
-    #   Defines metadata for the model.
-    class Meta:
-        #   use the ordering attribute to tell Django that it should sort results by the publish field
-        ordering = ['-publish']
-        #   allows dev to define database indexes for the model which can be one or multiple fields in ascending or descending order
-        #   or functional expressions and database functions
-        indexes = [
-            models.Index(fields=['publish']),
-        ]
+
 
  #   larger databases or those with a more complex structure may benefit from composite primary keys (joining table for a many-to-many relationship)
 class FavoritePost(models.Model):

@@ -33,14 +33,32 @@ def post_list(request):
 #     )
 
 
-def post_detail(request, id):
+#   Chapter One
+# def post_detail(request, id):
+#     #   Use the get_object_or_404() shortcut to retrieve the desired post.
+#     #   Retrieves the object that matches the given parameters or an HTTP 404 exception if no object is found
+#     post = get_object_or_404(
+#         Post,
+#         id=id,
+#         satus=Post.Status.PUBLISHED,
+#
+#     )
+
+    #   Chapter Two Impl
+    #   Takes the year, month, day, and post arguments and retrieve a published post
+    #   unique_for_date='publish' ensures that ther would be only one post with a slug for given date
+
+def post_detail(request, year, month, day, post):
     #   Use the get_object_or_404() shortcut to retrieve the desired post.
     #   Retrieves the object that matches the given parameters or an HTTP 404 exception if no object is found
     post = get_object_or_404(
         Post,
-        id=id,
-        satus=Post.Status.PUBLISHED
-    )
+        status=Post.Status.PUBLISHED,
+        slug=post,
+        publish__year=year,
+        publish__month=month,
+        publish__day=day)
+
     return render(
         request,
         'blog/post/detail.html',
